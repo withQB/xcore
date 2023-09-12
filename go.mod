@@ -1,3 +1,3 @@
 module github.com/withqb/xcore
 
-go 1.21.1
+go 1.21
