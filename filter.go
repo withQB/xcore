@@ -9,24 +9,24 @@ type Filter struct {
 	EventFields []string   `json:"event_fields,omitempty"`
 	EventFormat string     `json:"event_format,omitempty"`
 	Presence    FilterPart `json:"presence,omitempty"`
-	Room        RoomFilter `json:"room,omitempty"`
+	Frame        FrameFilter `json:"frame,omitempty"`
 }
 
-// RoomFilter is used to define filtering rules for room events
-type RoomFilter struct {
+// FrameFilter is used to define filtering rules for frame events
+type FrameFilter struct {
 	AccountData  FilterPart `json:"account_data,omitempty"`
 	Ephemeral    FilterPart `json:"ephemeral,omitempty"`
 	IncludeLeave bool       `json:"include_leave,omitempty"`
-	NotRooms     []string   `json:"not_rooms,omitempty"`
-	Rooms        []string   `json:"rooms,omitempty"`
+	NotFrames     []string   `json:"not_frames,omitempty"`
+	Frames        []string   `json:"frames,omitempty"`
 	State        FilterPart `json:"state,omitempty"`
 	Timeline     FilterPart `json:"timeline,omitempty"`
 }
 
 // FilterPart is used to define filtering rules for specific categories of events
 type FilterPart struct {
-	NotRooms    []string `json:"not_rooms,omitempty"`
-	Rooms       []string `json:"rooms,omitempty"`
+	NotFrames    []string `json:"not_frames,omitempty"`
+	Frames       []string `json:"frames,omitempty"`
 	Limit       int      `json:"limit,omitempty"`
 	NotSenders  []string `json:"not_senders,omitempty"`
 	NotTypes    []string `json:"not_types,omitempty"`
@@ -50,12 +50,12 @@ func DefaultFilter() Filter {
 		EventFields: nil,
 		EventFormat: "client",
 		Presence:    DefaultFilterPart(),
-		Room: RoomFilter{
+		Frame: FrameFilter{
 			AccountData:  DefaultFilterPart(),
 			Ephemeral:    DefaultFilterPart(),
 			IncludeLeave: false,
-			NotRooms:     nil,
-			Rooms:        nil,
+			NotFrames:     nil,
+			Frames:        nil,
 			State:        DefaultFilterPart(),
 			Timeline:     DefaultFilterPart(),
 		},
@@ -65,8 +65,8 @@ func DefaultFilter() Filter {
 // DefaultFilterPart returns the default filter part used by the Matrix server if no filter is provided in the request
 func DefaultFilterPart() FilterPart {
 	return FilterPart{
-		NotRooms:   nil,
-		Rooms:      nil,
+		NotFrames:   nil,
+		Frames:      nil,
 		Limit:      20,
 		NotSenders: nil,
 		NotTypes:   nil,

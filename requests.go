@@ -1,6 +1,6 @@
 package xcore
 
-// ReqRegister is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register
+// ReqRegister is the JSON request
 type ReqRegister struct {
 	Username                 string      `json:"username,omitempty"`
 	BindEmail                bool        `json:"bind_email,omitempty"`
@@ -10,7 +10,7 @@ type ReqRegister struct {
 	Auth                     interface{} `json:"auth,omitempty"`
 }
 
-// ReqLogin is the JSON request for http://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-login
+// ReqLogin is the JSON request
 type ReqLogin struct {
 	Type                     string     `json:"type"`
 	Identifier               Identifier `json:"identifier,omitempty"`
@@ -23,10 +23,10 @@ type ReqLogin struct {
 	InitialDeviceDisplayName string     `json:"initial_device_display_name,omitempty"`
 }
 
-// ReqCreateRoom is the JSON request for https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createroom
-type ReqCreateRoom struct {
+// ReqCreateFrame is the JSON request
+type ReqCreateFrame struct {
 	Visibility      string                 `json:"visibility,omitempty"`
-	RoomAliasName   string                 `json:"room_alias_name,omitempty"`
+	FrameAliasName   string                 `json:"frame_alias_name,omitempty"`
 	Name            string                 `json:"name,omitempty"`
 	Topic           string                 `json:"topic,omitempty"`
 	Invite          []string               `json:"invite,omitempty"`
@@ -37,42 +37,42 @@ type ReqCreateRoom struct {
 	IsDirect        bool                   `json:"is_direct,omitempty"`
 }
 
-// ReqRedact is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-redact-eventid-txnid
+// ReqRedact is the JSON request
 type ReqRedact struct {
 	Reason string `json:"reason,omitempty"`
 }
 
-// ReqInvite3PID is the JSON request for https://matrix.org/docs/spec/client_server/r0.2.0.html#id57
-// It is also a JSON object used in https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createroom
+// ReqInvite3PID is the JSON request
+// It is also a JSON object
 type ReqInvite3PID struct {
 	IDServer string `json:"id_server"`
 	Medium   string `json:"medium"`
 	Address  string `json:"address"`
 }
 
-// ReqInviteUser is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite
+// ReqInviteUser is the JSON request
 type ReqInviteUser struct {
 	UserID string `json:"user_id"`
 }
 
-// ReqKickUser is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-kick
+// ReqKickUser is the JSON request
 type ReqKickUser struct {
 	Reason string `json:"reason,omitempty"`
 	UserID string `json:"user_id"`
 }
 
-// ReqBanUser is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-ban
+// ReqBanUser is the JSON request
 type ReqBanUser struct {
 	Reason string `json:"reason,omitempty"`
 	UserID string `json:"user_id"`
 }
 
-// ReqUnbanUser is the JSON request for http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-unban
+// ReqUnbanUser is the JSON request
 type ReqUnbanUser struct {
 	UserID string `json:"user_id"`
 }
 
-// ReqTyping is the JSON request for https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid
+// ReqTyping is the JSON request
 type ReqTyping struct {
 	Typing  bool  `json:"typing"`
 	Timeout int64 `json:"timeout"`

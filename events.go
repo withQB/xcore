@@ -11,8 +11,8 @@ type Event struct {
 	Type        string                 `json:"type"`                   // The event type
 	Timestamp   int64                  `json:"origin_server_ts"`       // The unix timestamp when this message was sent by the origin server
 	ID          string                 `json:"event_id"`               // The unique ID of this event
-	RoomID      string                 `json:"room_id"`                // The room the event was sent to. May be nil (e.g. for presence)
-	Redacts     string                 `json:"redacts,omitempty"`      // The event ID that was redacted if a m.room.redaction event
+	FrameID      string                 `json:"frame_id"`                // The frame the event was sent to. May be nil (e.g. for presence)
+	Redacts     string                 `json:"redacts,omitempty"`      // The event ID that was redacted if a m.frame.redaction event
 	Unsigned    map[string]interface{} `json:"unsigned"`               // The unsigned portions of the event, such as age and prev_content
 	Content     map[string]interface{} `json:"content"`                // The JSON content of the event.
 	PrevContent map[string]interface{} `json:"prev_content,omitempty"` // The JSON prev_content of the event.

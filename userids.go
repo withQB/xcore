@@ -121,7 +121,6 @@ func DecodeUserLocalpart(str string) (string, error) {
 }
 
 // ExtractUserLocalpart extracts the localpart portion of a user ID.
-// See http://matrix.org/docs/spec/intro.html#user-identifiers
 func ExtractUserLocalpart(userID string) (string, error) {
 	if len(userID) == 0 || userID[0] != '@' {
 		return "", fmt.Errorf("%s is not a valid user id", userID)

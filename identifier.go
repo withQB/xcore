@@ -1,13 +1,12 @@
 package xcore
 
-// Identifier is the interface for https://matrix.org/docs/spec/client_server/r0.6.0#identifier-types
+// Identifier is the interface
 type Identifier interface {
 	// Returns the identifier type
-	// https://matrix.org/docs/spec/client_server/r0.6.0#identifier-types
 	Type() string
 }
 
-// UserIdentifier is the Identifier for https://matrix.org/docs/spec/client_server/r0.6.0#matrix-user-id
+// UserIdentifier is the Identifier
 type UserIdentifier struct {
 	IDType string `json:"type"` // Set by NewUserIdentifer
 	User   string `json:"user"`
@@ -26,7 +25,7 @@ func NewUserIdentifier(user string) UserIdentifier {
 	}
 }
 
-// ThirdpartyIdentifier is the Identifier for https://matrix.org/docs/spec/client_server/r0.6.0#third-party-id
+// ThirdpartyIdentifier is the Identifier
 type ThirdpartyIdentifier struct {
 	IDType  string `json:"type"` // Set by NewThirdpartyIdentifier
 	Medium  string `json:"medium"`
@@ -47,7 +46,7 @@ func NewThirdpartyIdentifier(medium, address string) ThirdpartyIdentifier {
 	}
 }
 
-// PhoneIdentifier is the Identifier for https://matrix.org/docs/spec/client_server/r0.6.0#phone-number
+// PhoneIdentifier is the Identifier
 type PhoneIdentifier struct {
 	IDType  string `json:"type"` // Set by NewPhoneIdentifier
 	Country string `json:"country"`

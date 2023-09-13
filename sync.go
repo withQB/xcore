@@ -53,36 +53,36 @@ func (s *DefaultSyncer) ProcessResponse(res *RespSync, since string) (err error)
 		}
 	}()
 
-	for roomID, roomData := range res.Rooms.Join {
-		room := s.getOrCreateRoom(roomID)
-		for _, event := range roomData.State.Events {
-			event.RoomID = roomID
-			room.UpdateState(&event)
+	for frameID, frameData := range res.Frames.Join {
+		frame := s.getOrCreateFrame(frameID)
+		for _, event := range frameData.State.Events {
+			event.FrameID = frameID
+			frame.UpdateState(&event)
 			s.notifyListeners(&event)
 		}
-		for _, event := range roomData.Timeline.Events {
-			event.RoomID = roomID
+		for _, event := range frameData.Timeline.Events {
+			event.FrameID = frameID
 			s.notifyListeners(&event)
 		}
-		for _, event := range roomData.Ephemeral.Events {
-			event.RoomID = roomID
-			s.notifyListeners(&event)
-		}
-	}
-	for roomID, roomData := range res.Rooms.Invite {
-		room := s.getOrCreateRoom(roomID)
-		for _, event := range roomData.State.Events {
-			event.RoomID = roomID
-			room.UpdateState(&event)
+		for _, event := range frameData.Ephemeral.Events {
+			event.FrameID = frameID
 			s.notifyListeners(&event)
 		}
 	}
-	for roomID, roomData := range res.Rooms.Leave {
-		room := s.getOrCreateRoom(roomID)
-		for _, event := range roomData.Timeline.Events {
+	for frameID, frameData := range res.Frames.Invite {
+		frame := s.getOrCreateFrame(frameID)
+		for _, event := range frameData.State.Events {
+			event.FrameID = frameID
+			frame.UpdateState(&event)
+			s.notifyListeners(&event)
+		}
+	}
+	for frameID, frameData := range res.Frames.Leave {
+		frame := s.getOrCreateFrame(frameID)
+		for _, event := range frameData.Timeline.Events {
 			if event.StateKey != nil {
-				event.RoomID = roomID
-				room.UpdateState(&event)
+				event.FrameID = frameID
+				frame.UpdateState(&event)
 				s.notifyListeners(&event)
 			}
 		}
@@ -106,29 +106,29 @@ func (s *DefaultSyncer) shouldProcessResponse(resp *RespSync, since string) bool
 	if since == "" {
 		return false
 	}
-	// This is a horrible hack because /sync will return the most recent messages for a room
-	// as soon as you /join it. We do NOT want to process those events in that particular room
-	// because they may have already been processed (if you toggle the bot in/out of the room).
+	// This is a horrible hack because /sync will return the most recent messages for a frame
+	// as soon as you /join it. We do NOT want to process those events in that particular frame
+	// because they may have already been processed (if you toggle the bot in/out of the frame).
 	//
-	// Work around this by inspecting each room's timeline and seeing if an m.room.member event for us
-	// exists and is "join" and then discard processing that room entirely if so.
+	// Work around this by inspecting each frame's timeline and seeing if an m.frame.member event for us
+	// exists and is "join" and then discard processing that frame entirely if so.
 	// TODO: We probably want to process messages from after the last join event in the timeline.
-	for roomID, roomData := range resp.Rooms.Join {
-		for i := len(roomData.Timeline.Events) - 1; i >= 0; i-- {
-			e := roomData.Timeline.Events[i]
-			if e.Type == "m.room.member" && e.StateKey != nil && *e.StateKey == s.UserID {
+	for frameID, frameData := range resp.Frames.Join {
+		for i := len(frameData.Timeline.Events) - 1; i >= 0; i-- {
+			e := frameData.Timeline.Events[i]
+			if e.Type == "m.frame.member" && e.StateKey != nil && *e.StateKey == s.UserID {
 				m := e.Content["membership"]
 				mship, ok := m.(string)
 				if !ok {
 					continue
 				}
 				if mship == "join" {
-					_, ok := resp.Rooms.Join[roomID]
+					_, ok := resp.Frames.Join[frameID]
 					if !ok {
 						continue
 					}
-					delete(resp.Rooms.Join, roomID)   // don't re-process messages
-					delete(resp.Rooms.Invite, roomID) // don't re-process invites
+					delete(resp.Frames.Join, frameID)   // don't re-process messages
+					delete(resp.Frames.Invite, frameID) // don't re-process invites
 					break
 				}
 			}
@@ -137,14 +137,14 @@ func (s *DefaultSyncer) shouldProcessResponse(resp *RespSync, since string) bool
 	return true
 }
 
-// getOrCreateRoom must only be called by the Sync() goroutine which calls ProcessResponse()
-func (s *DefaultSyncer) getOrCreateRoom(roomID string) *Room {
-	room := s.Store.LoadRoom(roomID)
-	if room == nil { // create a new Room
-		room = NewRoom(roomID)
-		s.Store.SaveRoom(room)
+// getOrCreateFrame must only be called by the Sync() goroutine which calls ProcessResponse()
+func (s *DefaultSyncer) getOrCreateFrame(frameID string) *Frame {
+	frame := s.Store.LoadFrame(frameID)
+	if frame == nil { // create a new Frame
+		frame = NewFrame(frameID)
+		s.Store.SaveFrame(frame)
 	}
-	return room
+	return frame
 }
 
 func (s *DefaultSyncer) notifyListeners(event *Event) {
@@ -164,5 +164,5 @@ func (s *DefaultSyncer) OnFailedSync(res *RespSync, err error) (time.Duration, e
 
 // GetFilterJSON returns a filter with a timeline limit of 50.
 func (s *DefaultSyncer) GetFilterJSON(userID string) json.RawMessage {
-	return json.RawMessage(`{"room":{"timeline":{"limit":50}}}`)
+	return json.RawMessage(`{"frame":{"timeline":{"limit":50}}}`)
 }

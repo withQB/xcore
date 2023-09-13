@@ -10,8 +10,8 @@ type Storer interface {
 	LoadFilterID(userID string) string
 	SaveNextBatch(userID, nextBatchToken string)
 	LoadNextBatch(userID string) string
-	SaveRoom(room *Room)
-	LoadRoom(roomID string) *Room
+	SaveFrame(frame *Frame)
+	LoadFrame(frameID string) *Frame
 }
 
 // InMemoryStore implements the Storer interface.
@@ -22,7 +22,7 @@ type Storer interface {
 type InMemoryStore struct {
 	Filters   map[string]string
 	NextBatch map[string]string
-	Rooms     map[string]*Room
+	Frames     map[string]*Frame
 }
 
 // SaveFilterID to memory.
@@ -45,14 +45,14 @@ func (s *InMemoryStore) LoadNextBatch(userID string) string {
 	return s.NextBatch[userID]
 }
 
-// SaveRoom to memory.
-func (s *InMemoryStore) SaveRoom(room *Room) {
-	s.Rooms[room.ID] = room
+// SaveFrame to memory.
+func (s *InMemoryStore) SaveFrame(frame *Frame) {
+	s.Frames[frame.ID] = frame
 }
 
-// LoadRoom from memory.
-func (s *InMemoryStore) LoadRoom(roomID string) *Room {
-	return s.Rooms[roomID]
+// LoadFrame from memory.
+func (s *InMemoryStore) LoadFrame(frameID string) *Frame {
+	return s.Frames[frameID]
 }
 
 // NewInMemoryStore constructs a new InMemoryStore.
@@ -60,6 +60,6 @@ func NewInMemoryStore() *InMemoryStore {
 	return &InMemoryStore{
 		Filters:   make(map[string]string),
 		NextBatch: make(map[string]string),
-		Rooms:     make(map[string]*Room),
+		Frames:     make(map[string]*Frame),
 	}
 }

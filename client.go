@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -23,7 +22,7 @@ type Client struct {
 	AccessToken   string       // The access_token for the client.
 	Client        *http.Client // The underlying HTTP client which will be used to make HTTP requests.
 	Syncer        Syncer       // The thing which can process /sync responses
-	Store         Storer       // The thing which can store rooms/tokens/ids
+	Store         Storer       // The thing which can store frames/tokens/ids
 
 	// The ?user_id= query parameter for application services. This must be set *prior* to calling a method. If this is empty,
 	// no user_id parameter will be sent.
@@ -213,7 +212,7 @@ func (cli *Client) MakeRequest(method string, httpURL string, reqBody interface{
 		return err
 	}
 	if res.StatusCode/100 != 2 { // not 2xx
-		contents, err := ioutil.ReadAll(res.Body)
+		contents, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
@@ -378,8 +377,8 @@ func (cli *Client) Versions() (resp *RespVersions, err error) {
 	return
 }
 
-// PublicRooms returns the list of public rooms on target server. See https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-unstable-publicrooms
-func (cli *Client) PublicRooms(limit int, since string, server string) (resp *RespPublicRooms, err error) {
+// PublicFrames returns the list of public frames on target server. See https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-unstable-publicframes
+func (cli *Client) PublicFrames(limit int, since string, server string) (resp *RespPublicFrames, err error) {
 	args := map[string]string{}
 
 	if limit != 0 {
@@ -392,14 +391,14 @@ func (cli *Client) PublicRooms(limit int, since string, server string) (resp *Re
 		args["server"] = server
 	}
 
-	urlPath := cli.BuildURLWithQuery([]string{"publicRooms"}, args)
+	urlPath := cli.BuildURLWithQuery([]string{"publicFrames"}, args)
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
 	return
 }
 
-// PublicRoomsFiltered returns a subset of PublicRooms filtered server side.
-// See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-unstable-publicrooms
-func (cli *Client) PublicRoomsFiltered(limit int, since string, server string, filter string) (resp *RespPublicRooms, err error) {
+// PublicFramesFiltered returns a subset of PublicFrames filtered server side.
+// See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-unstable-publicframes
+func (cli *Client) PublicFramesFiltered(limit int, since string, server string, filter string) (resp *RespPublicFrames, err error) {
 	content := map[string]string{}
 
 	if limit != 0 {
@@ -414,9 +413,9 @@ func (cli *Client) PublicRoomsFiltered(limit int, since string, server string, f
 
 	var urlPath string
 	if server == "" {
-		urlPath = cli.BuildURL("publicRooms")
+		urlPath = cli.BuildURL("publicFrames")
 	} else {
-		urlPath = cli.BuildURLWithQuery([]string{"publicRooms"}, map[string]string{
+		urlPath = cli.BuildURLWithQuery([]string{"publicFrames"}, map[string]string{
 			"server": server,
 		})
 	}
@@ -425,18 +424,18 @@ func (cli *Client) PublicRoomsFiltered(limit int, since string, server string, f
 	return
 }
 
-// JoinRoom joins the client to a room ID or alias. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-roomidoralias
+// JoinFrame joins the client to a frame ID or alias. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-frameidoralias
 //
 // If serverName is specified, this will be added as a query param to instruct the homeserver to join via that server. If content is specified, it will
 // be JSON encoded and used as the request body.
-func (cli *Client) JoinRoom(roomIDorAlias, serverName string, content interface{}) (resp *RespJoinRoom, err error) {
+func (cli *Client) JoinFrame(frameIDorAlias, serverName string, content interface{}) (resp *RespJoinFrame, err error) {
 	var urlPath string
 	if serverName != "" {
-		urlPath = cli.BuildURLWithQuery([]string{"join", roomIDorAlias}, map[string]string{
+		urlPath = cli.BuildURLWithQuery([]string{"join", frameIDorAlias}, map[string]string{
 			"server_name": serverName,
 		})
 	} else {
-		urlPath = cli.BuildURL("join", roomIDorAlias)
+		urlPath = cli.BuildURL("join", frameIDorAlias)
 	}
 	err = cli.MakeRequest("POST", urlPath, content, &resp)
 	return
@@ -518,41 +517,41 @@ func (cli *Client) SetStatus(presence, status string) (err error) {
 	return
 }
 
-// SendMessageEvent sends a message event into a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-send-eventtype-txnid
+// SendMessageEvent sends a message event into a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-send-eventtype-txnid
 // contentJSON should be a pointer to something that can be encoded as JSON using json.Marshal.
-func (cli *Client) SendMessageEvent(roomID string, eventType string, contentJSON interface{}) (resp *RespSendEvent, err error) {
+func (cli *Client) SendMessageEvent(frameID string, eventType string, contentJSON interface{}) (resp *RespSendEvent, err error) {
 	txnID := txnID()
-	urlPath := cli.BuildURL("rooms", roomID, "send", eventType, txnID)
+	urlPath := cli.BuildURL("frames", frameID, "send", eventType, txnID)
 	err = cli.MakeRequest("PUT", urlPath, contentJSON, &resp)
 	return
 }
 
-// SendStateEvent sends a state event into a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-state-eventtype-statekey
+// SendStateEvent sends a state event into a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-state-eventtype-statekey
 // contentJSON should be a pointer to something that can be encoded as JSON using json.Marshal.
-func (cli *Client) SendStateEvent(roomID, eventType, stateKey string, contentJSON interface{}) (resp *RespSendEvent, err error) {
-	urlPath := cli.BuildURL("rooms", roomID, "state", eventType, stateKey)
+func (cli *Client) SendStateEvent(frameID, eventType, stateKey string, contentJSON interface{}) (resp *RespSendEvent, err error) {
+	urlPath := cli.BuildURL("frames", frameID, "state", eventType, stateKey)
 	err = cli.MakeRequest("PUT", urlPath, contentJSON, &resp)
 	return
 }
 
-// SendText sends an m.room.message event into the given room with a msgtype of m.text
+// SendText sends an m.frame.message event into the given frame with a msgtype of m.text
 // See http://matrix.org/docs/spec/client_server/r0.2.0.html#m-text
-func (cli *Client) SendText(roomID, text string) (*RespSendEvent, error) {
-	return cli.SendMessageEvent(roomID, "m.room.message",
+func (cli *Client) SendText(frameID, text string) (*RespSendEvent, error) {
+	return cli.SendMessageEvent(frameID, "m.frame.message",
 		TextMessage{MsgType: "m.text", Body: text})
 }
 
-// SendFormattedText sends an m.room.message event into the given room with a msgtype of m.text, supports a subset of HTML for formatting.
+// SendFormattedText sends an m.frame.message event into the given frame with a msgtype of m.text, supports a subset of HTML for formatting.
 // See https://matrix.org/docs/spec/client_server/r0.6.0#m-text
-func (cli *Client) SendFormattedText(roomID, text, formattedText string) (*RespSendEvent, error) {
-	return cli.SendMessageEvent(roomID, "m.room.message",
+func (cli *Client) SendFormattedText(frameID, text, formattedText string) (*RespSendEvent, error) {
+	return cli.SendMessageEvent(frameID, "m.frame.message",
 		TextMessage{MsgType: "m.text", Body: text, FormattedBody: formattedText, Format: "org.matrix.custom.html"})
 }
 
-// SendImage sends an m.room.message event into the given room with a msgtype of m.image
+// SendImage sends an m.frame.message event into the given frame with a msgtype of m.image
 // See https://matrix.org/docs/spec/client_server/r0.2.0.html#m-image
-func (cli *Client) SendImage(roomID, body, url string) (*RespSendEvent, error) {
-	return cli.SendMessageEvent(roomID, "m.room.message",
+func (cli *Client) SendImage(frameID, body, url string) (*RespSendEvent, error) {
+	return cli.SendMessageEvent(frameID, "m.frame.message",
 		ImageMessage{
 			MsgType: "m.image",
 			Body:    body,
@@ -560,10 +559,10 @@ func (cli *Client) SendImage(roomID, body, url string) (*RespSendEvent, error) {
 		})
 }
 
-// SendVideo sends an m.room.message event into the given room with a msgtype of m.video
+// SendVideo sends an m.frame.message event into the given frame with a msgtype of m.video
 // See https://matrix.org/docs/spec/client_server/r0.2.0.html#m-video
-func (cli *Client) SendVideo(roomID, body, url string) (*RespSendEvent, error) {
-	return cli.SendMessageEvent(roomID, "m.room.message",
+func (cli *Client) SendVideo(frameID, body, url string) (*RespSendEvent, error) {
+	return cli.SendMessageEvent(frameID, "m.frame.message",
 		VideoMessage{
 			MsgType: "m.video",
 			Body:    body,
@@ -571,101 +570,101 @@ func (cli *Client) SendVideo(roomID, body, url string) (*RespSendEvent, error) {
 		})
 }
 
-// SendNotice sends an m.room.message event into the given room with a msgtype of m.notice
+// SendNotice sends an m.frame.message event into the given frame with a msgtype of m.notice
 // See http://matrix.org/docs/spec/client_server/r0.2.0.html#m-notice
-func (cli *Client) SendNotice(roomID, text string) (*RespSendEvent, error) {
-	return cli.SendMessageEvent(roomID, "m.room.message",
+func (cli *Client) SendNotice(frameID, text string) (*RespSendEvent, error) {
+	return cli.SendMessageEvent(frameID, "m.frame.message",
 		TextMessage{MsgType: "m.notice", Body: text})
 }
 
-// RedactEvent redacts the given event. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-redact-eventid-txnid
-func (cli *Client) RedactEvent(roomID, eventID string, req *ReqRedact) (resp *RespSendEvent, err error) {
+// RedactEvent redacts the given event. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-redact-eventid-txnid
+func (cli *Client) RedactEvent(frameID, eventID string, req *ReqRedact) (resp *RespSendEvent, err error) {
 	txnID := txnID()
-	urlPath := cli.BuildURL("rooms", roomID, "redact", eventID, txnID)
+	urlPath := cli.BuildURL("frames", frameID, "redact", eventID, txnID)
 	err = cli.MakeRequest("PUT", urlPath, req, &resp)
 	return
 }
 
-// MarkRead marks eventID in roomID as read, signifying the event, and all before it have been read. See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-rooms-roomid-receipt-receipttype-eventid
-func (cli *Client) MarkRead(roomID, eventID string) error {
-	urlPath := cli.BuildURL("rooms", roomID, "receipt", "m.read", eventID)
+// MarkRead marks eventID in frameID as read, signifying the event, and all before it have been read. See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-frames-frameid-receipt-receipttype-eventid
+func (cli *Client) MarkRead(frameID, eventID string) error {
+	urlPath := cli.BuildURL("frames", frameID, "receipt", "m.read", eventID)
 	return cli.MakeRequest("POST", urlPath, nil, nil)
 }
 
-// CreateRoom creates a new Matrix room. See https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createroom
+// CreateFrame creates a new Matrix frame. See https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createframe
 //
-//	resp, err := cli.CreateRoom(&gomatrix.ReqCreateRoom{
+//	resp, err := cli.CreateFrame(&gomatrix.ReqCreateFrame{
 //		Preset: "public_chat",
 //	})
-//	fmt.Println("Room:", resp.RoomID)
-func (cli *Client) CreateRoom(req *ReqCreateRoom) (resp *RespCreateRoom, err error) {
-	urlPath := cli.BuildURL("createRoom")
+//	fmt.Println("Frame:", resp.FrameID)
+func (cli *Client) CreateFrame(req *ReqCreateFrame) (resp *RespCreateFrame, err error) {
+	urlPath := cli.BuildURL("createFrame")
 	err = cli.MakeRequest("POST", urlPath, req, &resp)
 	return
 }
 
-// LeaveRoom leaves the given room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-leave
-func (cli *Client) LeaveRoom(roomID string) (resp *RespLeaveRoom, err error) {
-	u := cli.BuildURL("rooms", roomID, "leave")
+// LeaveFrame leaves the given frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-leave
+func (cli *Client) LeaveFrame(frameID string) (resp *RespLeaveFrame, err error) {
+	u := cli.BuildURL("frames", frameID, "leave")
 	err = cli.MakeRequest("POST", u, struct{}{}, &resp)
 	return
 }
 
-// ForgetRoom forgets a room entirely. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-forget
-func (cli *Client) ForgetRoom(roomID string) (resp *RespForgetRoom, err error) {
-	u := cli.BuildURL("rooms", roomID, "forget")
+// ForgetFrame forgets a frame entirely. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-forget
+func (cli *Client) ForgetFrame(frameID string) (resp *RespForgetFrame, err error) {
+	u := cli.BuildURL("frames", frameID, "forget")
 	err = cli.MakeRequest("POST", u, struct{}{}, &resp)
 	return
 }
 
-// InviteUser invites a user to a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-invite
-func (cli *Client) InviteUser(roomID string, req *ReqInviteUser) (resp *RespInviteUser, err error) {
-	u := cli.BuildURL("rooms", roomID, "invite")
+// InviteUser invites a user to a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-invite
+func (cli *Client) InviteUser(frameID string, req *ReqInviteUser) (resp *RespInviteUser, err error) {
+	u := cli.BuildURL("frames", frameID, "invite")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// InviteUserByThirdParty invites a third-party identifier to a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#invite-by-third-party-id-endpoint
-func (cli *Client) InviteUserByThirdParty(roomID string, req *ReqInvite3PID) (resp *RespInviteUser, err error) {
-	u := cli.BuildURL("rooms", roomID, "invite")
+// InviteUserByThirdParty invites a third-party identifier to a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#invite-by-third-party-id-endpoint
+func (cli *Client) InviteUserByThirdParty(frameID string, req *ReqInvite3PID) (resp *RespInviteUser, err error) {
+	u := cli.BuildURL("frames", frameID, "invite")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// KickUser kicks a user from a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-kick
-func (cli *Client) KickUser(roomID string, req *ReqKickUser) (resp *RespKickUser, err error) {
-	u := cli.BuildURL("rooms", roomID, "kick")
+// KickUser kicks a user from a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-kick
+func (cli *Client) KickUser(frameID string, req *ReqKickUser) (resp *RespKickUser, err error) {
+	u := cli.BuildURL("frames", frameID, "kick")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// BanUser bans a user from a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-ban
-func (cli *Client) BanUser(roomID string, req *ReqBanUser) (resp *RespBanUser, err error) {
-	u := cli.BuildURL("rooms", roomID, "ban")
+// BanUser bans a user from a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-ban
+func (cli *Client) BanUser(frameID string, req *ReqBanUser) (resp *RespBanUser, err error) {
+	u := cli.BuildURL("frames", frameID, "ban")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// UnbanUser unbans a user from a room. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-rooms-roomid-unban
-func (cli *Client) UnbanUser(roomID string, req *ReqUnbanUser) (resp *RespUnbanUser, err error) {
-	u := cli.BuildURL("rooms", roomID, "unban")
+// UnbanUser unbans a user from a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-unban
+func (cli *Client) UnbanUser(frameID string, req *ReqUnbanUser) (resp *RespUnbanUser, err error) {
+	u := cli.BuildURL("frames", frameID, "unban")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// UserTyping sets the typing status of the user. See https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-rooms-roomid-typing-userid
-func (cli *Client) UserTyping(roomID string, typing bool, timeout int64) (resp *RespTyping, err error) {
+// UserTyping sets the typing status of the user. See https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-typing-userid
+func (cli *Client) UserTyping(frameID string, typing bool, timeout int64) (resp *RespTyping, err error) {
 	req := ReqTyping{Typing: typing, Timeout: timeout}
-	u := cli.BuildURL("rooms", roomID, "typing", cli.UserID)
+	u := cli.BuildURL("frames", frameID, "typing", cli.UserID)
 	err = cli.MakeRequest("PUT", u, req, &resp)
 	return
 }
 
-// StateEvent gets a single state event in a room. It will attempt to JSON unmarshal into the given "outContent" struct with
+// StateEvent gets a single state event in a frame. It will attempt to JSON unmarshal into the given "outContent" struct with
 // the HTTP response body, or return an error.
-// See http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-state-eventtype-statekey
-func (cli *Client) StateEvent(roomID, eventType, stateKey string, outContent interface{}) (err error) {
-	u := cli.BuildURL("rooms", roomID, "state", eventType, stateKey)
+// See http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-frames-frameid-state-eventtype-statekey
+func (cli *Client) StateEvent(frameID, eventType, stateKey string, outContent interface{}) (err error) {
+	u := cli.BuildURL("frames", frameID, "state", eventType, stateKey)
 	err = cli.MakeRequest("GET", u, nil, outContent)
 	return
 }
@@ -705,7 +704,7 @@ func (cli *Client) UploadToContentRepo(content io.Reader, contentType string, co
 	}
 
 	if res.StatusCode != 200 {
-		contents, err := ioutil.ReadAll(res.Body)
+		contents, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, HTTPError{
 				Message: "Upload request failed - Failed to read response body: " + err.Error(),
@@ -727,30 +726,30 @@ func (cli *Client) UploadToContentRepo(content io.Reader, contentType string, co
 	return &m, nil
 }
 
-// JoinedMembers returns a map of joined room members. See TODO-SPEC. https://github.com/matrix-org/synapse/pull/1680
+// JoinedMembers returns a map of joined frame members. See TODO-SPEC. https://github.com/matrix-org/synapse/pull/1680
 //
 // In general, usage of this API is discouraged in favour of /sync, as calling this API can race with incoming membership changes.
-// This API is primarily designed for application services which may want to efficiently look up joined members in a room.
-func (cli *Client) JoinedMembers(roomID string) (resp *RespJoinedMembers, err error) {
-	u := cli.BuildURL("rooms", roomID, "joined_members")
+// This API is primarily designed for application services which may want to efficiently look up joined members in a frame.
+func (cli *Client) JoinedMembers(frameID string) (resp *RespJoinedMembers, err error) {
+	u := cli.BuildURL("frames", frameID, "joined_members")
 	err = cli.MakeRequest("GET", u, nil, &resp)
 	return
 }
 
-// JoinedRooms returns a list of rooms which the client is joined to. See TODO-SPEC. https://github.com/matrix-org/synapse/pull/1680
+// JoinedFrames returns a list of frames which the client is joined to. See TODO-SPEC. https://github.com/matrix-org/synapse/pull/1680
 //
 // In general, usage of this API is discouraged in favour of /sync, as calling this API can race with incoming membership changes.
-// This API is primarily designed for application services which may want to efficiently look up joined rooms.
-func (cli *Client) JoinedRooms() (resp *RespJoinedRooms, err error) {
-	u := cli.BuildURL("joined_rooms")
+// This API is primarily designed for application services which may want to efficiently look up joined frames.
+func (cli *Client) JoinedFrames() (resp *RespJoinedFrames, err error) {
+	u := cli.BuildURL("joined_frames")
 	err = cli.MakeRequest("GET", u, nil, &resp)
 	return
 }
 
-// Messages returns a list of message and state events for a room. It uses
-// pagination query parameters to paginate history in the room.
-// See https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-rooms-roomid-messages
-func (cli *Client) Messages(roomID, from, to string, dir rune, limit int) (resp *RespMessages, err error) {
+// Messages returns a list of message and state events for a frame. It uses
+// pagination query parameters to paginate history in the frame.
+// See https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-frames-frameid-messages
+func (cli *Client) Messages(frameID, from, to string, dir rune, limit int) (resp *RespMessages, err error) {
 	query := map[string]string{
 		"from": from,
 		"dir":  string(dir),
@@ -762,7 +761,7 @@ func (cli *Client) Messages(roomID, from, to string, dir rune, limit int) (resp 
 		query["limit"] = strconv.Itoa(limit)
 	}
 
-	urlPath := cli.BuildURLWithQuery([]string{"rooms", roomID, "messages"}, query)
+	urlPath := cli.BuildURLWithQuery([]string{"frames", frameID, "messages"}, query)
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
 	return
 }
