@@ -44,7 +44,7 @@ func isValidEscapedChar(b byte) bool {
 	return b == '_' || (b >= 'a' && b <= 'z')
 }
 
-// EncodeUserLocalpart encodes the given string into Matrix-compliant user ID localpart form.
+// EncodeUserLocalpart encodes the given string into Coddy-compliant user ID localpart form.
 //
 // This returns a string with only the characters "a-z0-9._=-". The uppercase range A-Z
 // are encoded using leading underscores ("_"). Characters outside the aforementioned ranges

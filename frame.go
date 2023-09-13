@@ -1,6 +1,6 @@
 package xcore
 
-// Frame represents a single Matrix frame.
+// Frame represents a single Coddy frame.
 type Frame struct {
 	ID    string
 	State map[string]map[string]*Event

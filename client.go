@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// Client represents a Matrix client.
+// Client represents a Coddy client.
 type Client struct {
 	HomeserverURL *url.URL     // The base homeserver URL
 	Prefix        string       // The API prefix eg '/_coddy/client/r0'
@@ -369,7 +369,7 @@ func (cli *Client) LogoutAll() (resp *RespLogoutAll, err error) {
 	return
 }
 
-// Versions returns the list of supported Matrix versions on this homeserver. See get-coddy-client-versions
+// Versions returns the list of supported Coddy versions on this homeserver. See get-coddy-client-versions
 func (cli *Client) Versions() (resp *RespVersions, err error) {
 	urlPath := cli.BuildBaseURL("_coddy", "client", "versions")
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
@@ -590,7 +590,7 @@ func (cli *Client) MarkRead(frameID, eventID string) error {
 	return cli.MakeRequest("POST", urlPath, nil, nil)
 }
 
-// CreateFrame creates a new Matrix frame. See post-coddy-client-r0-createframe
+// CreateFrame creates a new Coddy frame. See post-coddy-client-r0-createframe
 //
 //	resp, err := cli.CreateFrame(&gocoddy.ReqCreateFrame{
 //		Preset: "public_chat",
@@ -777,7 +777,7 @@ func txnID() string {
 	return "go" + strconv.FormatInt(time.Now().UnixNano(), 10)
 }
 
-// NewClient creates a new Matrix Client ready for syncing
+// NewClient creates a new Coddy Client ready for syncing
 func NewClient(homeserverURL, userID, accessToken string) (*Client, error) {
 	hsURL, err := url.Parse(homeserverURL)
 	if err != nil {

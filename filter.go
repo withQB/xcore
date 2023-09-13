@@ -43,7 +43,7 @@ func (filter *Filter) Validate() error {
 	return nil
 }
 
-// DefaultFilter returns the default filter used by the Matrix server if no filter is provided in the request
+// DefaultFilter returns the default filter used by the Coddy server if no filter is provided in the request
 func DefaultFilter() Filter {
 	return Filter{
 		AccountData: DefaultFilterPart(),
@@ -62,7 +62,7 @@ func DefaultFilter() Filter {
 	}
 }
 
-// DefaultFilterPart returns the default filter part used by the Matrix server if no filter is provided in the request
+// DefaultFilterPart returns the default filter part used by the Coddy server if no filter is provided in the request
 func DefaultFilterPart() FilterPart {
 	return FilterPart{
 		NotFrames:   nil,

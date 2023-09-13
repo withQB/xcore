@@ -40,7 +40,7 @@ func (event *Event) MessageType() (msgtype string, ok bool) {
 	return
 }
 
-// TextMessage is the contents of a Matrix formated message event.
+// TextMessage is the contents of a Coddy formated message event.
 type TextMessage struct {
 	MsgType       string `json:"msgtype"`
 	Body          string `json:"body"`
@@ -93,7 +93,7 @@ type ImageMessage struct {
 	Info    ImageInfo `json:"info"`
 }
 
-// An HTMLMessage is the contents of a Matrix HTML formated message event.
+// An HTMLMessage is the contents of a Coddy HTML formated message event.
 type HTMLMessage struct {
 	Body          string `json:"body"`
 	MsgType       string `json:"msgtype"`
