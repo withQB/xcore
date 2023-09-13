@@ -112,7 +112,7 @@ func (s *DefaultSyncer) shouldProcessResponse(resp *RespSync, since string) bool
 	//
 	// Work around this by inspecting each frame's timeline and seeing if an m.frame.member event for us
 	// exists and is "join" and then discard processing that frame entirely if so.
-	// TODO: We probably want to process messages from after the last join event in the timeline.
+	// TDO: We probably want to process messages from after the last join event in the timeline.
 	for frameID, frameData := range resp.Frames.Join {
 		for i := len(frameData.Timeline.Events) - 1; i >= 0; i-- {
 			e := frameData.Timeline.Events[i]
