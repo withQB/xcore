@@ -48,7 +48,7 @@ type TextMessage struct {
 	Format        string `json:"format"`
 }
 
-// ThumbnailInfo contains info about an thumbnail image - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-image
+// ThumbnailInfo contains info about an thumbnail image - m-image
 type ThumbnailInfo struct {
 	Height   uint   `json:"h,omitempty"`
 	Width    uint   `json:"w,omitempty"`
@@ -56,7 +56,7 @@ type ThumbnailInfo struct {
 	Size     uint   `json:"size,omitempty"`
 }
 
-// ImageInfo contains info about an image - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-image
+// ImageInfo contains info about an image - m-image
 type ImageInfo struct {
 	Height        uint          `json:"h,omitempty"`
 	Width         uint          `json:"w,omitempty"`
@@ -66,7 +66,7 @@ type ImageInfo struct {
 	ThumbnailURL  string        `json:"thumbnail_url,omitempty"`
 }
 
-// VideoInfo contains info about a video - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-video
+// VideoInfo contains info about a video - m-video
 type VideoInfo struct {
 	Mimetype      string        `json:"mimetype,omitempty"`
 	ThumbnailInfo ThumbnailInfo `json:"thumbnail_info"`
@@ -77,7 +77,7 @@ type VideoInfo struct {
 	Size          uint          `json:"size,omitempty"`
 }
 
-// VideoMessage is an m.video  - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-video
+// VideoMessage is an m.video  - m-video
 type VideoMessage struct {
 	MsgType string    `json:"msgtype"`
 	Body    string    `json:"body"`
@@ -101,13 +101,13 @@ type HTMLMessage struct {
 	FormattedBody string `json:"formatted_body"`
 }
 
-// FileInfo contains info about an file - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-file
+// FileInfo contains info about an file - m-file
 type FileInfo struct {
 	Mimetype string `json:"mimetype,omitempty"`
 	Size     uint   `json:"size,omitempty"` //filesize in bytes
 }
 
-// FileMessage is an m.file event - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-file
+// FileMessage is an m.file event - m-file
 type FileMessage struct {
 	MsgType       string    `json:"msgtype"`
 	Body          string    `json:"body"`
@@ -118,7 +118,7 @@ type FileMessage struct {
 	ThumbnailInfo ImageInfo `json:"thumbnail_info,omitempty"`
 }
 
-// LocationMessage is an m.location event - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-location
+// LocationMessage is an m.location event - m-location
 type LocationMessage struct {
 	MsgType       string    `json:"msgtype"`
 	Body          string    `json:"body"`
@@ -127,14 +127,14 @@ type LocationMessage struct {
 	ThumbnailInfo ImageInfo `json:"thumbnail_info,omitempty"`
 }
 
-// AudioInfo contains info about an file - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-audio
+// AudioInfo contains info about an file - m-audio
 type AudioInfo struct {
 	Mimetype string `json:"mimetype,omitempty"`
 	Size     uint   `json:"size,omitempty"`     //filesize in bytes
 	Duration uint   `json:"duration,omitempty"` //audio duration in ms
 }
 
-// AudioMessage is an m.audio event - http://matrix.org/docs/spec/client_server/r0.2.0.html#m-audio
+// AudioMessage is an m.audio event - m-audio
 type AudioMessage struct {
 	MsgType string    `json:"msgtype"`
 	Body    string    `json:"body"`
@@ -150,7 +150,7 @@ func GetHTMLMessage(msgtype, htmlText string) HTMLMessage {
 	return HTMLMessage{
 		Body:          html.UnescapeString(htmlRegex.ReplaceAllLiteralString(htmlText, "")),
 		MsgType:       msgtype,
-		Format:        "org.matrix.custom.html",
+		Format:        "org.coddy.custom.html",
 		FormattedBody: htmlText,
 	}
 }

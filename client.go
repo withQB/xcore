@@ -17,7 +17,7 @@ import (
 // Client represents a Matrix client.
 type Client struct {
 	HomeserverURL *url.URL     // The base homeserver URL
-	Prefix        string       // The API prefix eg '/_matrix/client/r0'
+	Prefix        string       // The API prefix eg '/_coddy/client/r0'
 	UserID        string       // The user ID of the client. Used for forming HTTP paths which use the client's user ID.
 	AccessToken   string       // The access_token for the client.
 	Client        *http.Client // The underlying HTTP client which will be used to make HTTP requests.
@@ -26,7 +26,6 @@ type Client struct {
 
 	// The ?user_id= query parameter for application services. This must be set *prior* to calling a method. If this is empty,
 	// no user_id parameter will be sent.
-	// See http://matrix.org/docs/spec/application_service/unstable.html#identity-assertion
 	AppServiceUserID string
 
 	syncingMutex sync.Mutex // protects syncingID
@@ -245,14 +244,14 @@ func (cli *Client) MakeRequest(method string, httpURL string, reqBody interface{
 	return nil
 }
 
-// CreateFilter makes an HTTP request according to http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-user-userid-filter
+// CreateFilter makes an HTTP request according to post-coddy-client-r0-user-userid-filter
 func (cli *Client) CreateFilter(filter json.RawMessage) (resp *RespCreateFilter, err error) {
 	urlPath := cli.BuildURL("user", cli.UserID, "filter")
 	err = cli.MakeRequest("POST", urlPath, &filter, &resp)
 	return
 }
 
-// SyncRequest makes an HTTP request according to http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-sync
+// SyncRequest makes an HTTP request according to get-coddy-client-r0-sync
 func (cli *Client) SyncRequest(timeout int, since, filterID string, fullState bool, setPresence string) (resp *RespSync, err error) {
 	query := map[string]string{
 		"timeout": strconv.Itoa(timeout),
@@ -290,7 +289,7 @@ func (cli *Client) register(u string, req *ReqRegister) (resp *RespRegister, uia
 	return
 }
 
-// Register makes an HTTP request according to http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register
+// Register makes an HTTP request according to post-coddy-client-r0-register
 //
 // Registers with kind=user. For kind=guest, see RegisterGuest.
 func (cli *Client) Register(req *ReqRegister) (*RespRegister, *RespUserInteractive, error) {
@@ -298,7 +297,7 @@ func (cli *Client) Register(req *ReqRegister) (*RespRegister, *RespUserInteracti
 	return cli.register(u, req)
 }
 
-// RegisterGuest makes an HTTP request according to http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-register
+// RegisterGuest makes an HTTP request according to post-coddy-client-r0-register
 // with kind=guest.
 //
 // For kind=user, see Register.
@@ -310,14 +309,14 @@ func (cli *Client) RegisterGuest(req *ReqRegister) (*RespRegister, *RespUserInte
 	return cli.register(u, req)
 }
 
-// RegisterDummy performs m.login.dummy registration according to https://matrix.org/docs/spec/client_server/r0.2.0.html#dummy-auth
+// RegisterDummy performs m.login.dummy registration according
 //
 // Only a username and password need to be provided on the ReqRegister struct. Most local/developer homeservers will allow registration
 // this way. If the homeserver does not, an error is returned.
 //
 // This does not set credentials on the client instance. See SetCredentials() instead.
 //
-//		res, err := cli.RegisterDummy(&gomatrix.ReqRegister{
+//		res, err := cli.RegisterDummy(&gocoddy.ReqRegister{
 //			Username: "alice",
 //			Password: "wonderland",
 //		})
@@ -346,7 +345,7 @@ func (cli *Client) RegisterDummy(req *ReqRegister) (*RespRegister, error) {
 	return res, nil
 }
 
-// Login a user to the homeserver according to http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-login
+// Login a user to the homeserver according to post-coddy-client-r0-login
 // This does not set credentials on this client instance. See SetCredentials() instead.
 func (cli *Client) Login(req *ReqLogin) (resp *RespLogin, err error) {
 	urlPath := cli.BuildURL("login")
@@ -354,7 +353,7 @@ func (cli *Client) Login(req *ReqLogin) (resp *RespLogin, err error) {
 	return
 }
 
-// Logout the current user. See http://matrix.org/docs/spec/client_server/r0.6.0.html#post-matrix-client-r0-logout
+// Logout the current user
 // This does not clear the credentials from the client instance. See ClearCredentials() instead.
 func (cli *Client) Logout() (resp *RespLogout, err error) {
 	urlPath := cli.BuildURL("logout")
@@ -362,7 +361,7 @@ func (cli *Client) Logout() (resp *RespLogout, err error) {
 	return
 }
 
-// LogoutAll logs the current user out on all devices. See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-logout-all
+// LogoutAll logs the current user out on all devices. See post-coddy-client-r0-logout-all
 // This does not clear the credentials from the client instance. See ClearCredentails() instead.
 func (cli *Client) LogoutAll() (resp *RespLogoutAll, err error) {
 	urlPath := cli.BuildURL("logout/all")
@@ -370,14 +369,14 @@ func (cli *Client) LogoutAll() (resp *RespLogoutAll, err error) {
 	return
 }
 
-// Versions returns the list of supported Matrix versions on this homeserver. See http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-versions
+// Versions returns the list of supported Matrix versions on this homeserver. See get-coddy-client-versions
 func (cli *Client) Versions() (resp *RespVersions, err error) {
-	urlPath := cli.BuildBaseURL("_matrix", "client", "versions")
+	urlPath := cli.BuildBaseURL("_coddy", "client", "versions")
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
 	return
 }
 
-// PublicFrames returns the list of public frames on target server. See https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-unstable-publicframes
+// PublicFrames returns the list of public frames on target server. See get-coddy-client-unstable-publicframes
 func (cli *Client) PublicFrames(limit int, since string, server string) (resp *RespPublicFrames, err error) {
 	args := map[string]string{}
 
@@ -397,7 +396,7 @@ func (cli *Client) PublicFrames(limit int, since string, server string) (resp *R
 }
 
 // PublicFramesFiltered returns a subset of PublicFrames filtered server side.
-// See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-unstable-publicframes
+// See post-coddy-client-unstable-publicframes
 func (cli *Client) PublicFramesFiltered(limit int, since string, server string, filter string) (resp *RespPublicFrames, err error) {
 	content := map[string]string{}
 
@@ -424,7 +423,7 @@ func (cli *Client) PublicFramesFiltered(limit int, since string, server string, 
 	return
 }
 
-// JoinFrame joins the client to a frame ID or alias. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-join-frameidoralias
+// JoinFrame joins the client to a frame ID or alias. See post-coddy-client-r0-join-frameidoralias
 //
 // If serverName is specified, this will be added as a query param to instruct the homeserver to join via that server. If content is specified, it will
 // be JSON encoded and used as the request body.
@@ -441,21 +440,21 @@ func (cli *Client) JoinFrame(frameIDorAlias, serverName string, content interfac
 	return
 }
 
-// GetDisplayName returns the display name of the user from the specified MXID. See https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-displayname
+// GetDisplayName returns the display name of the user from the specified MXID. See get-coddy-client-r0-profile-userid-displayname
 func (cli *Client) GetDisplayName(mxid string) (resp *RespUserDisplayName, err error) {
 	urlPath := cli.BuildURL("profile", mxid, "displayname")
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
 	return
 }
 
-// GetOwnDisplayName returns the user's display name. See https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-displayname
+// GetOwnDisplayName returns the user's display name. See get-coddy-client-r0-profile-userid-displayname
 func (cli *Client) GetOwnDisplayName() (resp *RespUserDisplayName, err error) {
 	urlPath := cli.BuildURL("profile", cli.UserID, "displayname")
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
 	return
 }
 
-// SetDisplayName sets the user's profile display name. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-profile-userid-displayname
+// SetDisplayName sets the user's profile display name. See put-coddy-client-r0-profile-userid-displayname
 func (cli *Client) SetDisplayName(displayName string) (err error) {
 	urlPath := cli.BuildURL("profile", cli.UserID, "displayname")
 	s := struct {
@@ -465,7 +464,7 @@ func (cli *Client) SetDisplayName(displayName string) (err error) {
 	return
 }
 
-// GetAvatarURL gets the user's avatar URL. See http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-profile-userid-avatar-url
+// GetAvatarURL gets the user's avatar URL. See get-coddy-client-r0-profile-userid-avatar-url
 func (cli *Client) GetAvatarURL() (string, error) {
 	urlPath := cli.BuildURL("profile", cli.UserID, "avatar_url")
 	s := struct {
@@ -480,7 +479,7 @@ func (cli *Client) GetAvatarURL() (string, error) {
 	return s.AvatarURL, nil
 }
 
-// SetAvatarURL sets the user's avatar URL. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-profile-userid-avatar-url
+// SetAvatarURL sets the user's avatar URL. See put-coddy-client-r0-profile-userid-avatar-url
 func (cli *Client) SetAvatarURL(url string) error {
 	urlPath := cli.BuildURL("profile", cli.UserID, "avatar_url")
 	s := struct {
@@ -494,19 +493,19 @@ func (cli *Client) SetAvatarURL(url string) error {
 	return nil
 }
 
-// GetStatus returns the status of the user from the specified MXID. See https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-presence-userid-status
+// GetStatus returns the status of the user from the specified MXID. See get-coddy-client-r0-presence-userid-status
 func (cli *Client) GetStatus(mxid string) (resp *RespUserStatus, err error) {
 	urlPath := cli.BuildURL("presence", mxid, "status")
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
 	return
 }
 
-// GetOwnStatus returns the user's status. See https://matrix.org/docs/spec/client_server/r0.6.0#get-matrix-client-r0-presence-userid-status
+// GetOwnStatus returns the user's status. See get-coddy-client-r0-presence-userid-status
 func (cli *Client) GetOwnStatus() (resp *RespUserStatus, err error) {
 	return cli.GetStatus(cli.UserID)
 }
 
-// SetStatus sets the user's status. See https://matrix.org/docs/spec/client_server/r0.6.0#put-matrix-client-r0-presence-userid-status
+// SetStatus sets the user's status. See put-coddy-client-r0-presence-userid-status
 func (cli *Client) SetStatus(presence, status string) (err error) {
 	urlPath := cli.BuildURL("presence", cli.UserID, "status")
 	s := struct {
@@ -517,7 +516,7 @@ func (cli *Client) SetStatus(presence, status string) (err error) {
 	return
 }
 
-// SendMessageEvent sends a message event into a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-send-eventtype-txnid
+// SendMessageEvent sends a message event into a frame. See put-coddy-client-r0-frames-frameid-send-eventtype-txnid
 // contentJSON should be a pointer to something that can be encoded as JSON using json.Marshal.
 func (cli *Client) SendMessageEvent(frameID string, eventType string, contentJSON interface{}) (resp *RespSendEvent, err error) {
 	txnID := txnID()
@@ -526,7 +525,7 @@ func (cli *Client) SendMessageEvent(frameID string, eventType string, contentJSO
 	return
 }
 
-// SendStateEvent sends a state event into a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-state-eventtype-statekey
+// SendStateEvent sends a state event into a frame. See put-coddy-client-r0-frames-frameid-state-eventtype-statekey
 // contentJSON should be a pointer to something that can be encoded as JSON using json.Marshal.
 func (cli *Client) SendStateEvent(frameID, eventType, stateKey string, contentJSON interface{}) (resp *RespSendEvent, err error) {
 	urlPath := cli.BuildURL("frames", frameID, "state", eventType, stateKey)
@@ -535,21 +534,21 @@ func (cli *Client) SendStateEvent(frameID, eventType, stateKey string, contentJS
 }
 
 // SendText sends an m.frame.message event into the given frame with a msgtype of m.text
-// See http://matrix.org/docs/spec/client_server/r0.2.0.html#m-text
+// See m-text
 func (cli *Client) SendText(frameID, text string) (*RespSendEvent, error) {
 	return cli.SendMessageEvent(frameID, "m.frame.message",
 		TextMessage{MsgType: "m.text", Body: text})
 }
 
 // SendFormattedText sends an m.frame.message event into the given frame with a msgtype of m.text, supports a subset of HTML for formatting.
-// See https://matrix.org/docs/spec/client_server/r0.6.0#m-text
+// See m-text
 func (cli *Client) SendFormattedText(frameID, text, formattedText string) (*RespSendEvent, error) {
 	return cli.SendMessageEvent(frameID, "m.frame.message",
-		TextMessage{MsgType: "m.text", Body: text, FormattedBody: formattedText, Format: "org.matrix.custom.html"})
+		TextMessage{MsgType: "m.text", Body: text, FormattedBody: formattedText, Format: "org.coddy.custom.html"})
 }
 
 // SendImage sends an m.frame.message event into the given frame with a msgtype of m.image
-// See https://matrix.org/docs/spec/client_server/r0.2.0.html#m-image
+// See m-image
 func (cli *Client) SendImage(frameID, body, url string) (*RespSendEvent, error) {
 	return cli.SendMessageEvent(frameID, "m.frame.message",
 		ImageMessage{
@@ -560,7 +559,7 @@ func (cli *Client) SendImage(frameID, body, url string) (*RespSendEvent, error) 
 }
 
 // SendVideo sends an m.frame.message event into the given frame with a msgtype of m.video
-// See https://matrix.org/docs/spec/client_server/r0.2.0.html#m-video
+// See m-video
 func (cli *Client) SendVideo(frameID, body, url string) (*RespSendEvent, error) {
 	return cli.SendMessageEvent(frameID, "m.frame.message",
 		VideoMessage{
@@ -571,13 +570,13 @@ func (cli *Client) SendVideo(frameID, body, url string) (*RespSendEvent, error) 
 }
 
 // SendNotice sends an m.frame.message event into the given frame with a msgtype of m.notice
-// See http://matrix.org/docs/spec/client_server/r0.2.0.html#m-notice
+// See m-notice
 func (cli *Client) SendNotice(frameID, text string) (*RespSendEvent, error) {
 	return cli.SendMessageEvent(frameID, "m.frame.message",
 		TextMessage{MsgType: "m.notice", Body: text})
 }
 
-// RedactEvent redacts the given event. See http://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-redact-eventid-txnid
+// RedactEvent redacts the given event. See put-coddy-client-r0-frames-frameid-redact-eventid-txnid
 func (cli *Client) RedactEvent(frameID, eventID string, req *ReqRedact) (resp *RespSendEvent, err error) {
 	txnID := txnID()
 	urlPath := cli.BuildURL("frames", frameID, "redact", eventID, txnID)
@@ -585,15 +584,15 @@ func (cli *Client) RedactEvent(frameID, eventID string, req *ReqRedact) (resp *R
 	return
 }
 
-// MarkRead marks eventID in frameID as read, signifying the event, and all before it have been read. See https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-frames-frameid-receipt-receipttype-eventid
+// MarkRead marks eventID in frameID as read, signifying the event, and all before it have been read. See post-coddy-client-r0-frames-frameid-receipt-receipttype-eventid
 func (cli *Client) MarkRead(frameID, eventID string) error {
 	urlPath := cli.BuildURL("frames", frameID, "receipt", "m.read", eventID)
 	return cli.MakeRequest("POST", urlPath, nil, nil)
 }
 
-// CreateFrame creates a new Matrix frame. See https://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-createframe
+// CreateFrame creates a new Matrix frame. See post-coddy-client-r0-createframe
 //
-//	resp, err := cli.CreateFrame(&gomatrix.ReqCreateFrame{
+//	resp, err := cli.CreateFrame(&gocoddy.ReqCreateFrame{
 //		Preset: "public_chat",
 //	})
 //	fmt.Println("Frame:", resp.FrameID)
@@ -603,56 +602,56 @@ func (cli *Client) CreateFrame(req *ReqCreateFrame) (resp *RespCreateFrame, err 
 	return
 }
 
-// LeaveFrame leaves the given frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-leave
+// LeaveFrame leaves the given frame. See post-coddy-client-r0-frames-frameid-leave
 func (cli *Client) LeaveFrame(frameID string) (resp *RespLeaveFrame, err error) {
 	u := cli.BuildURL("frames", frameID, "leave")
 	err = cli.MakeRequest("POST", u, struct{}{}, &resp)
 	return
 }
 
-// ForgetFrame forgets a frame entirely. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-forget
+// ForgetFrame forgets a frame entirely. See post-coddy-client-r0-frames-frameid-forget
 func (cli *Client) ForgetFrame(frameID string) (resp *RespForgetFrame, err error) {
 	u := cli.BuildURL("frames", frameID, "forget")
 	err = cli.MakeRequest("POST", u, struct{}{}, &resp)
 	return
 }
 
-// InviteUser invites a user to a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-invite
+// InviteUser invites a user to a frame. See post-coddy-client-r0-frames-frameid-invite
 func (cli *Client) InviteUser(frameID string, req *ReqInviteUser) (resp *RespInviteUser, err error) {
 	u := cli.BuildURL("frames", frameID, "invite")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// InviteUserByThirdParty invites a third-party identifier to a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#invite-by-third-party-id-endpoint
+// InviteUserByThirdParty invites a third-party identifier to a frame. See invite-by-third-party-id-endpoint
 func (cli *Client) InviteUserByThirdParty(frameID string, req *ReqInvite3PID) (resp *RespInviteUser, err error) {
 	u := cli.BuildURL("frames", frameID, "invite")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// KickUser kicks a user from a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-kick
+// KickUser kicks a user from a frame. See post-coddy-client-r0-frames-frameid-kick
 func (cli *Client) KickUser(frameID string, req *ReqKickUser) (resp *RespKickUser, err error) {
 	u := cli.BuildURL("frames", frameID, "kick")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// BanUser bans a user from a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-ban
+// BanUser bans a user from a frame. See post-coddy-client-r0-frames-frameid-ban
 func (cli *Client) BanUser(frameID string, req *ReqBanUser) (resp *RespBanUser, err error) {
 	u := cli.BuildURL("frames", frameID, "ban")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// UnbanUser unbans a user from a frame. See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-client-r0-frames-frameid-unban
+// UnbanUser unbans a user from a frame. See post-coddy-client-r0-frames-frameid-unban
 func (cli *Client) UnbanUser(frameID string, req *ReqUnbanUser) (resp *RespUnbanUser, err error) {
 	u := cli.BuildURL("frames", frameID, "unban")
 	err = cli.MakeRequest("POST", u, req, &resp)
 	return
 }
 
-// UserTyping sets the typing status of the user. See https://matrix.org/docs/spec/client_server/r0.2.0.html#put-matrix-client-r0-frames-frameid-typing-userid
+// UserTyping sets the typing status of the user. See put-coddy-client-r0-frames-frameid-typing-userid
 func (cli *Client) UserTyping(frameID string, typing bool, timeout int64) (resp *RespTyping, err error) {
 	req := ReqTyping{Typing: typing, Timeout: timeout}
 	u := cli.BuildURL("frames", frameID, "typing", cli.UserID)
@@ -662,7 +661,7 @@ func (cli *Client) UserTyping(frameID string, typing bool, timeout int64) (resp 
 
 // StateEvent gets a single state event in a frame. It will attempt to JSON unmarshal into the given "outContent" struct with
 // the HTTP response body, or return an error.
-// See http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-frames-frameid-state-eventtype-statekey
+// See get-coddy-client-r0-frames-frameid-state-eventtype-statekey
 func (cli *Client) StateEvent(frameID, eventType, stateKey string, outContent interface{}) (err error) {
 	u := cli.BuildURL("frames", frameID, "state", eventType, stateKey)
 	err = cli.MakeRequest("GET", u, nil, outContent)
@@ -682,9 +681,9 @@ func (cli *Client) UploadLink(link string) (*RespMediaUpload, error) {
 }
 
 // UploadToContentRepo uploads the given bytes to the content repository and returns an MXC URI.
-// See http://matrix.org/docs/spec/client_server/r0.2.0.html#post-matrix-media-r0-upload
+// See post-coddy-media-r0-upload
 func (cli *Client) UploadToContentRepo(content io.Reader, contentType string, contentLength int64) (*RespMediaUpload, error) {
-	req, err := http.NewRequest("POST", cli.BuildBaseURL("_matrix/media/r0/upload"), content)
+	req, err := http.NewRequest("POST", cli.BuildBaseURL("_coddy/media/r0/upload"), content)
 	if err != nil {
 		return nil, err
 	}
@@ -726,7 +725,7 @@ func (cli *Client) UploadToContentRepo(content io.Reader, contentType string, co
 	return &m, nil
 }
 
-// JoinedMembers returns a map of joined frame members. See TODO-SPEC. https://github.com/matrix-org/synapse/pull/1680
+// JoinedMembers returns a map of joined frame members. See TODO-SPEC. https://github.com/coddy-org/synapse/pull/1680
 //
 // In general, usage of this API is discouraged in favour of /sync, as calling this API can race with incoming membership changes.
 // This API is primarily designed for application services which may want to efficiently look up joined members in a frame.
@@ -736,7 +735,7 @@ func (cli *Client) JoinedMembers(frameID string) (resp *RespJoinedMembers, err e
 	return
 }
 
-// JoinedFrames returns a list of frames which the client is joined to. See TODO-SPEC. https://github.com/matrix-org/synapse/pull/1680
+// JoinedFrames returns a list of frames which the client is joined to. See TODO-SPEC. https://github.com/coddy-org/synapse/pull/1680
 //
 // In general, usage of this API is discouraged in favour of /sync, as calling this API can race with incoming membership changes.
 // This API is primarily designed for application services which may want to efficiently look up joined frames.
@@ -748,7 +747,7 @@ func (cli *Client) JoinedFrames() (resp *RespJoinedFrames, err error) {
 
 // Messages returns a list of message and state events for a frame. It uses
 // pagination query parameters to paginate history in the frame.
-// See https://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-frames-frameid-messages
+// See get-coddy-client-r0-frames-frameid-messages
 func (cli *Client) Messages(frameID, from, to string, dir rune, limit int) (resp *RespMessages, err error) {
 	query := map[string]string{
 		"from": from,
@@ -767,7 +766,7 @@ func (cli *Client) Messages(frameID, from, to string, dir rune, limit int) (resp
 }
 
 // TurnServer returns turn server details and credentials for the client to use when initiating calls.
-// See http://matrix.org/docs/spec/client_server/r0.2.0.html#get-matrix-client-r0-voip-turnserver
+// See get-coddy-client-r0-voip-turnserver
 func (cli *Client) TurnServer() (resp *RespTurnServer, err error) {
 	urlPath := cli.BuildURL("voip", "turnServer")
 	err = cli.MakeRequest("GET", urlPath, nil, &resp)
@@ -792,7 +791,7 @@ func NewClient(homeserverURL, userID, accessToken string) (*Client, error) {
 		AccessToken:   accessToken,
 		HomeserverURL: hsURL,
 		UserID:        userID,
-		Prefix:        "/_matrix/client/r0",
+		Prefix:        "/_coddy/client/r0",
 		Syncer:        NewDefaultSyncer(userID, store),
 		Store:         store,
 	}

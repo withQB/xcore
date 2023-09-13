@@ -139,7 +139,7 @@ type RespLogin struct {
 	WellKnown   DiscoveryInformation `json:"well_known"`
 }
 
-// DiscoveryInformation is the JSON Response for https://matrix.org/docs/spec/client_server/r0.6.0#get-well-known-matrix-client and a part of the JSON Response for https://matrix.org/docs/spec/client_server/r0.6.0#post-matrix-client-r0-login
+// DiscoveryInformation is the JSON Response for get-well-known-coddy-client and a part of the JSON Response for post-coddy-client-r0-login
 type DiscoveryInformation struct {
 	Homeserver struct {
 		BaseURL string `json:"base_url"`

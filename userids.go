@@ -45,7 +45,6 @@ func isValidEscapedChar(b byte) bool {
 }
 
 // EncodeUserLocalpart encodes the given string into Matrix-compliant user ID localpart form.
-// See http://matrix.org/docs/spec/intro.html#mapping-from-other-character-sets
 //
 // This returns a string with only the characters "a-z0-9._=-". The uppercase range A-Z
 // are encoded using leading underscores ("_"). Characters outside the aforementioned ranges
@@ -70,7 +69,6 @@ func EncodeUserLocalpart(str string) string {
 
 // DecodeUserLocalpart decodes the given string back into the original input string.
 // Returns an error if the given string is not a valid user ID localpart encoding.
-// See http://matrix.org/docs/spec/intro.html#mapping-from-other-character-sets
 //
 // This decodes quoted-printable bytes back into UTF8, and unescapes casing. For
 // example:
